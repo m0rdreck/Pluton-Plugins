@@ -2,13 +2,15 @@ Remove plugin
 ==============
 
 In English          
-  
+
   Setup:
+
     Add the "Remove" folder in rust_dedicated\Release\server\my_server_identity\Pluton\Plugins\Remove\Remove.py
     Then in the game console ( open with f1 ) write pluton.reload
     The plugin is now ready for use
 
   Commands list:
+
     /remove ( only admin ) admin can destroy all building
     /owner ( only admin ) for know name of builder
     /destroy to destroy one object
@@ -18,6 +20,7 @@ In English
     /destroyConfigUpdate "config" "value" for change plugin configuration
 
   Configuration list:
+
     language=en
       fr for french language
       en for english language
@@ -34,11 +37,13 @@ In English
 En Français
 
   Installation:
-    Ajouter le dossier "Remove" dans rust_dedicated\Release serveur\my_server_identity\Pluton\Plugins\Remove\Remove.py 
+
+    Ajouter le dossier "Remove" dans rust_dedicated\Release serveur\my_server_identity\Pluton\Plugins\Remove\Remove.py
     Ensuite dans la console du jeu (ouvrir avec f1) écrire pluton.reload 
     Le plugin est maintenant prêt à fonctionner
 
   Liste des commandes
+
     /remove ( only admin ) l'admin peut détruire n'importe quelle batiment
     /owner ( only admin ) pour connaître le nom du constructeur
     /destroy pour détruire un batiment
@@ -48,6 +53,7 @@ En Français
     /destroyConfigUpdate "config" "valeur" pour modifier une configuration du plugin
 
   Liste des configurations:
+
     language=fr
       fr Pour la langue française
       en Pour la langue anglaise
