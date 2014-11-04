@@ -231,7 +231,7 @@ class Remove:
         for key in enum:
             if iniShare.GetSetting(str(gid), str(key)) == str(2):
                 iniu = self.getGlobal("owner_" + str(key))
-                if(iniu.GetSetting("object", loc) == str(key) or iniu.GetSetting("object", locP) == str(key)):
+                if(iniu.GetSetting("object", loc) != "" and iniu.GetSetting("object", loc) == str(key) or iniu.GetSetting("object", locP) != "" and iniu.GetSetting("object", locP) == str(key)):
                     Util.DestroyEntity(bb)
                     iniu.DeleteSetting("object", loc)
                     iniu.Save()
