@@ -1,5 +1,5 @@
 __author__ = 'M0rdreck'
-__version__ = '1.9.2'
+__version__ = '1.9.3'
 
 import clr
 import sys
@@ -149,8 +149,8 @@ class Remove:
     def cmdOwner(self, args, player):
         ini = self.getGlobal("owner_" + str(player.GameID))
         if ini == "" or ini is None:
-            u = self.user(str(player.GameID))
-            self.setGlobal("owner_" + str(player.GameID), u)
+            ini = self.user(str(player.GameID))
+            self.setGlobal("owner_" + str(player.GameID), ini)
         quotedargs = Util.GetQuotedArgs(args)
         if not player.Admin:
             return
@@ -171,8 +171,8 @@ class Remove:
     def cmdDestroy(self, args, player):
         ini = self.getGlobal("owner_" + str(player.GameID))
         if ini == "" or ini is None:
-            u = self.user(str(player.GameID))
-            self.setGlobal("owner_" + str(player.GameID), u)
+            ini = self.user(str(player.GameID))
+            self.setGlobal("owner_" + str(player.GameID), ini)
         quotedArgs = Util.GetQuotedArgs(args)
         isdestroying = DataStore.Get("destroy", str(player.GameID))
         if iniConfig.GetSetting("Config", "destroy") == str(1):
@@ -238,8 +238,8 @@ class Remove:
             if iniShare.GetSetting(str(gid), str(key)) == str(2):
                 iniu = self.getGlobal("owner_" + str(key))
                 if iniu == "" or iniu is None:
-                    u = self.user(str(gid))
-                    self.setGlobal("owner_" + str(gid), u)
+                    iniu = self.user(str(gid))
+                    self.setGlobal("owner_" + str(gid), iniu)
                 if(iniu.GetSetting("object", loc) != "" and iniu.GetSetting("object", loc) == str(key) or iniu.GetSetting("object", locP) == str(key)):
                     Util.DestroyEntity(bb)
                     iniu.DeleteSetting("object", loc)
@@ -252,8 +252,8 @@ class Remove:
         gid = player.userID
         ini = self.getGlobal("owner_" + str(gid))
         if ini == "" or ini is None:
-            u = self.user(str(gid))
-            self.setGlobal("owner_" + str(gid), u)
+            ini = self.user(str(gid))
+            self.setGlobal("owner_" + str(gid), ini)
         if player is not None:
             loc = str(bhe.X) + str(bhe.Y) + str(bhe.Z) + attacked.Victim.buildingBlock.blockDefinition.name
             locP = str(bhe.X) + str(bhe.Y) + str(bhe.Z) + attacked.Victim.Prefab
@@ -263,8 +263,8 @@ class Remove:
                     for p in Server.ActivePlayers:
                         i = self.getGlobal("owner_" + str(p.GameID))
                         if i == "" or i is None:
-                            u = self.user(str(p.GameID))
-                            self.setGlobal("owner_" + str(p.GameID), u)
+                            i = self.user(str(p.GameID))
+                            self.setGlobal("owner_" + str(p.GameID), i)
                         ownerGID = i.GetSetting("object", loc)
                         ownerGIDP = i.GetSetting("object", locP)
                         if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
@@ -274,8 +274,8 @@ class Remove:
                     for p in Server.SleepingPlayers:
                         i = self.getGlobal("owner_" + str(p.GameID))
                         if i == "" or i is None:
-                            u = self.user(str(player.GameID))
-                            self.setGlobal("owner_" + str(player.GameID), u)
+                            i = self.user(str(player.GameID))
+                            self.setGlobal("owner_" + str(player.GameID), i)
                         ownerGID = i.GetSetting("object", loc)
                         ownerGIDP = i.GetSetting("object", locP)
                         if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
@@ -289,8 +289,8 @@ class Remove:
                 for p in Server.ActivePlayers:
                     i = self.getGlobal("owner_" + str(p.GameID))
                     if i == "" or i is None:
-                        u = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), u)
+                        i = self.user(str(p.GameID))
+                        self.setGlobal("owner_" + str(p.GameID), i)
                     ownerGID = i.GetSetting("object", loc)
                     ownerGIDP = i.GetSetting("object", locP)
                     if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
@@ -299,8 +299,8 @@ class Remove:
                 for p in Server.SleepingPlayers:
                     i = self.getGlobal("owner_" + str(p.GameID))
                     if i == "" or i is None:
-                        u = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), u)
+                        i = self.user(str(p.GameID))
+                        self.setGlobal("owner_" + str(p.GameID), i)
                     ownerGID = i.GetSetting("object", loc)
                     ownerGIDP = i.GetSetting("object", locP)
                     if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
@@ -325,11 +325,11 @@ class Remove:
         gid = builder.GameID
         ini = self.getGlobal("owner_" + str(gid))
         if ini == "" or ini is None:
-            u = self.user(str(gid))
-            self.setGlobal("owner_" + str(gid), u)
+            ini = self.user(str(gid))
+            self.setGlobal("owner_" + str(gid), ini)
         if builder is not None:
             loc = str(bp.X) + str(bp.Y) + str(bp.Z) + str(fde.BuildingPart.Prefab)
-            if ini is not None and ini.GetSetting("object", loc) == "" or ini.GetSetting("object", loc) is None:
+            if ini.GetSetting("object", loc) == "" or ini.GetSetting("object", loc) is None:
                 ini.SetSetting("object", loc, str(gid))
                 ini.Save()
                 builder.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "building_save"))
@@ -340,8 +340,8 @@ class Remove:
         gid = builder.GameID
         ini = self.getGlobal("owner_" + str(gid))
         if ini == "" or ini is None:
-            u = self.user(str(gid))
-            self.setGlobal("owner_" + str(gid), u)
+            ini = self.user(str(gid))
+            self.setGlobal("owner_" + str(gid), ini)
         if builder is not None:
             loc = str(be.BuildingPart.X) + str(be.BuildingPart.Y) + str(be.BuildingPart.Z) + be.BlockName
             locP = str(be.BuildingPart.X) + str(be.BuildingPart.Y) + str(be.BuildingPart.Z) + bp.Prefab
@@ -356,8 +356,8 @@ class Remove:
                 for p in Server.ActivePlayers:
                     i = self.getGlobal("owner_" + str(p.GameID))
                     if i == "" or i is None:
-                        u = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), u)
+                        i = self.user(str(p.GameID))
+                        self.setGlobal("owner_" + str(p.GameID), i)
                     ownerGID = i.GetSetting("object", loc)
                     ownerGIDP = i.GetSetting("object", locP)
                     if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
@@ -366,8 +366,8 @@ class Remove:
                 for p in Server.SleepingPlayers:
                     i = self.getGlobal("owner_" + str(p.GameID))
                     if i == "" or i is None:
-                        u = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), u)
+                        i = self.user(str(p.GameID))
+                        self.setGlobal("owner_" + str(p.GameID), i)
                     ownerGID = i.GetSetting("object", loc)
                     ownerGIDP = i.GetSetting("object", locP)
                     if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
