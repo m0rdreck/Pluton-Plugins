@@ -24,7 +24,7 @@ class Teleport:
             ini.AddSetting("config","tpResquestDelay","60")
             ini.AddSetting("config","delay","3600")
             ini.AddSetting("config","delayBefore","10")
-            ini.AddSetting("config", "PVPTime", "60")
+            ini.AddSetting("config","pvpTime", "60")
             ini.AddSetting("config","nb","2")
             ini.AddSetting("config","rad","2")
 
