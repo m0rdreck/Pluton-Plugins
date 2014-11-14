@@ -1,5 +1,5 @@
 __author__ = 'M0rdreck'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 import sys
@@ -8,7 +8,7 @@ clr.AddReferenceByPartialName("UnityEngine")
 clr.AddReferenceByPartialName("Pluton")
 import UnityEngine
 import Pluton
-from System import String
+import System
 
 class Teleport:
     def config(self):
@@ -75,27 +75,31 @@ class Teleport:
         iniHome = self.home()
         global iniLang
         iniLang = self.language()
-        Commands.Register("teleportConfig")\
+        Commands.Register("teleportconfig")\
             .setCallback(self.cmdConfig)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_config_list"))\
                     .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_config_list"))
-        Commands.Register("teleportConfigUpdate")\
+        Commands.Register("teleportconfigupdate")\
             .setCallback(self.cmdConfigUpdate)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_config_update"))\
                     .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_config_update"))
-        Commands.Register("listHome")\
+        Commands.Register("listhome")\
             .setCallback(self.cmdListHome)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_home_list"))\
                     .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_home_list"))
-        Commands.Register("addHome")\
-            .setCallback(self.cmdListHome)\
+        Commands.Register("addhome")\
+            .setCallback(self.cmdAddHome)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_home_add"))\
                     .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_home_add"))
-        Commands.Register("delHome")\
-            .setCallback(self.cmdListHome)\
+        Commands.Register("delhome")\
+            .setCallback(self.cmdDelHome)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_home_del"))\
                     .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_home_del"))
-        Commands.Register("tpList")\
+        Commands.Register("tphome")\
+            .setCallback(self.cmdTpHome)\
+                .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_home_tp"))\
+                    .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_home_tp"))
+        Commands.Register("tplist")\
             .setCallback(self.cmdTpList)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_tp_list"))\
                     .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_tp_list"))
@@ -110,7 +114,7 @@ class Teleport:
         Commands.Register("tpr")\
             .setCallback(self.cmdTpRefuse)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_tp_refuse"))\
-                    .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_rp_refuse"))
+                    .setUsage(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "usage_tp_refuse"))
         Commands.Register("tpa")\
             .setCallback(self.cmdAdminTp)\
                 .setDescription(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "description_admin_tp"))\
@@ -175,12 +179,36 @@ class Teleport:
             player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
             return
 
+    def cmdTpHome(self, args, player):
+        quotedargs = Util.GetQuotedArgs(args)
+        gid = str(player.GameID)
+        time = Plugin.GetTimestamp()
+        nombreMax = iniConfig.GetSetting("Config", "nb")
+        delaisMax = float(iniConfig.GetSetting("Config", "delais")) * 1000
+        delais = int(delaisTeleport(gid)) + int(delaisMax)
+        nombre = nbTeleport(gid)
+        if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
+            loc = iniHome.GetSetting(gid, quotedargs[0]).split('/')
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
+            return
+        if nombre == nombreMax:
+            p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "max_tp").replace("[[nb]]", nombreMax))
+            del teleportRequest[str(gidFrom)]
+            return
+        if delais > time:
+            p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "delais_tp").replace("[[delais]]", delaisMax))
+            del teleportRequest[str(gidFrom)]
+            return
+        playerFrom.GroundTeleport(float(loc[0]), float(loc[1]), float(loc[2]))
+        playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_to_home").replace("[[home]]", quotedargs[0]))
+
     def cmdTp(self, args, player):
         quotedargs = Util.GetQuotedArgs(args)
         gid = str(player.GameID)
         time = Plugin.GetTimestamp()
         nombreMax = iniConfig.GetSetting("Config", "nb")
-        delaisMax = iniConfig.GetSetting("Config", "delais")
+        delaisMax = float(iniConfig.GetSetting("Config", "delais")) * 1000
         delais = int(delaisTeleport(gid)) + int(delaisMax)
         nombre = nbTeleport(gid)
         if nombre == nombreMax:
@@ -192,22 +220,22 @@ class Teleport:
         for p in Server.ActivePlayers:
             if(p.Name.lower() == quotedArgs[0].lower()):
                 if teleportRequest.has_key(str(player.GameID)):
-                    teleportRequest[str(player.GameID)][str(p.GameID)] == 1
+                    teleportRequest[str(player.GameID)][str(p.GameID)] = 1
                 else:
                     teleportRequest[str(player.GameID)] = {}
-                    teleportRequest[str(player.GameID)][str(p.GameID)] == 1
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "home_tp_requete").replace("[[name]]", player.Name))
+                    teleportRequest[str(player.GameID)][str(p.GameID)] = 1
+                p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "tp_requete").replace("[[name]]", player.Name))
 
     def cmdTpAccept(self, args, player):
         quotedargs = Util.GetQuotedArgs(args)
         gid = str(player.GameID)
         time = Plugin.GetTimestamp()
         nombreMax = iniConfig.GetSetting("Config", "nb")
-        delaisMax = iniConfig.GetSetting("Config", "delais")
+        delaisMax = float(iniConfig.GetSetting("Config", "delais")) * 1000
         playerFrom = None
         gidFrom = None
         for p in Server.ActivePlayers:
-            if(p.Name.lower() == quotedArgs[0].lower()):
+            if p.Name.lower() == quotedArgs[0].lower():
                 playerFrom = p
                 gidFrom = str(p.GameID)
         if gidFrom == None:
@@ -224,14 +252,14 @@ class Teleport:
         delais = int(delaisTeleport(gidFrom)) + int(delaisMax)
         nombre = nbTeleport(gidFrom)
         if nombre == nombreMax:
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "max_tp").replace("[[nb]]", nombreMax))
+            playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "max_tp").replace("[[nb]]", nombreMax))
             del teleportRequest[str(gidFrom)]
             return
         if delais > time:
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "delais_tp").replace("[[delais]]", delaisMax))
+            playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "delais_tp").replace("[[delais]]", delaisMax))
             del teleportRequest[str(gidFrom)]
             return
-        playerFrom.GroundTeleport(float(p.X), float(p.y), float(p.z))
+        playerFrom.GroundTeleport(float(playerFrom.X), float(playerFromp.y), float(playerFrom.z))
         playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_to").replace("[[user]]", player.Name))
 
     def cmdTpRefuse(self, args, player):
@@ -256,7 +284,7 @@ class Teleport:
     def cmdTpList(self, args, player):
         quotedargs = Util.GetQuotedArgs(args)
         gid = str(player.GameID)
-        playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_list_request").replace("[[user]]", player.Name))
+        playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_list_request"))
         if teleportRequest.has_key(str(gid)):
             enum = teleportRequest.EnumSection(gid)
             n = 0
@@ -269,30 +297,6 @@ class Teleport:
                     if(str(p.GameID) == key):
                         playerFrom.Message(n + ". " + p.Name)
                         n = n + 1
-
-    def cmdTpHome(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        time = Plugin.GetTimestamp()
-        nombreMax = iniConfig.GetSetting("Config", "nb")
-        delaisMax = iniConfig.GetSetting("Config", "delais")
-        delais = int(delaisTeleport(gid)) + int(delaisMax)
-        nombre = nbTeleport(gid)
-        if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
-            loc = iniHome.GetSetting(gid, quotedargs[0]).split('/')
-        else:
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
-            return
-        if nombre == nombreMax:
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "max_tp").replace("[[nb]]", nombreMax))
-            del teleportRequest[str(gidFrom)]
-            return
-        if delais > time:
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "delais_tp").replace("[[delais]]", delaisMax))
-            del teleportRequest[str(gidFrom)]
-            return
-        playerFrom.GroundTeleport(float(loc[0]), float(loc[1]), float(loc[2]))
-        playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_to_home").replace("[[home]]", quotedargs[0]))
 
     def cmdAdminTp(self, args, player):
         quotedargs = Util.GetQuotedArgs(args)
@@ -309,7 +313,6 @@ class Teleport:
             if(p.Name.lower() == cmd.quotedArgs[0].lower()):
                 player.GroundTeleport(p.X, p.Y, p.Z)
                 player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_to_").replace("[[user]]", quotedargs[0]))
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "admin_teleport").replace("[[user]]", player.Name))
                 return
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
 
