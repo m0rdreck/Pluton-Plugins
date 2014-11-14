@@ -8,6 +8,7 @@ clr.AddReferenceByPartialName("UnityEngine")
 clr.AddReferenceByPartialName("Pluton")
 import UnityEngine
 import Pluton
+import re
 
 class Remove:
     def config(self):
@@ -74,7 +75,68 @@ class Remove:
             ownerGID = i.GetSetting("object", loc)
             if str(p.GameID) == str(ownerGID):
                 return P
+        for p in Server.OfflinePlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            ownerGID = i.GetSetting("object", loc)
+            if str(p.GameID) == str(ownerGID):
+                return P
         return None
+
+    def regexLoc(self, pattern, string):
+        name = re.match(pattern+'.*', string)
+        return name
+
+    def shareTest(self, gid, gid2):
+        enum = iniShare.EnumSection(str(gid))
+        for key in enum:
+            if str(key) == str(gid2):
+                return True
+        return False
+
+    def searchBuilding(self, loc, gid, rad):
+        owner = False
+        for p in Server.ActivePlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            enum = i.EnumSection("object")
+            for key in enum:
+                k = key.split( )
+                locA = k[0].split("/")
+                if (locA[0] + rad) > loc[0] and (locA[0] - rad) < loc[0] and (locA[2] + rad) > loc[2] and (locA[2] - rad) < loc[2]:
+                    owner = p.GameID
+        for p in Server.SleepingPlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            enum = i.EnumSection("object")
+            for key in enum:
+                k = key.split( )
+                locA = k[0].split("/")
+                if (locA[0] + rad) > loc[0] and (locA[0] - rad) < loc[0] and (locA[2] + rad) > loc[2] and (locA[2] - rad) < loc[2]:
+                    owner = p.GameID
+        for p in Server.OfflinePlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            enum = i.EnumSection("object")
+            for key in enum:
+                k = key.split( )
+                locA = k[0].split("/")
+                if (locA[0] + rad) > loc[0] and (locA[0] - rad) < loc[0] and (locA[2] + rad) > loc[2] and (locA[2] - rad) < loc[2]:
+                    owner = p.GameID
+        if owner == gid:
+            owner = True
+        else:
+            if shareTest(gid, owner) == True:
+                owner = True
+        return owner
 
     def On_PlayerConnected(self, player):
         u = self.user(str(player.GameID))
@@ -170,7 +232,6 @@ class Remove:
         if ini == "" or ini is None:
             ini = self.user(str(player.GameID))
             self.setGlobal("owner_" + str(player.GameID), ini)
-        quotedargs = Util.GetQuotedArgs(args)
         if not player.Admin:
             return
         if iniConfig.GetSetting("Config", "owner") == str(1):
@@ -192,7 +253,6 @@ class Remove:
         if ini == "" or ini is None:
             ini = self.user(str(player.GameID))
             self.setGlobal("owner_" + str(player.GameID), ini)
-        quotedArgs = Util.GetQuotedArgs(args)
         isdestroying = DataStore.Get("destroy", str(player.GameID))
         if iniConfig.GetSetting("Config", "destroy") == str(1):
             if isdestroying is not None:
