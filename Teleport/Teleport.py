@@ -53,9 +53,9 @@ class Teleport:
         if iniInfos.GetSetting(str(gid), "nombre") != "" and iniInfos.GetSetting(str(gid), "nombre") is not None:
             return iniInfos.GetSetting(str(gid), "nombre")
 
-    def delaisTeleport(self, gid):
-        if iniInfos.GetSetting(str(gid), "delais") != "" and iniInfos.GetSetting(str(gid), "delais") is not None:
-            return iniInfos.GetSetting(str(gid), "delais")
+    def delayTeleport(self, gid):
+        if iniInfos.GetSetting(str(gid), "delay") != "" and iniInfos.GetSetting(str(gid), "delay") is not None:
+            return iniInfos.GetSetting(str(gid), "delay")
 
     def setGlobal(self, key, value):
         g = globals()
@@ -247,8 +247,8 @@ class Teleport:
             gid = str(player.GameID)
             time = Plugin.GetTimestamp()
             nombreMax = iniConfig.GetSetting("config", "nb")
-            delaisMax = int(iniConfig.GetSetting("config", "delais")) * 1000
-            delais = int(delaisTeleport(gid)) + int(delaisMax)
+            delayMax = int(iniConfig.GetSetting("config", "delay")) * 1000
+            delay = int(delayTeleport(gid)) + int(delayMax)
             nombre = nbTeleport(gid)
             if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
                 loc = iniHome.GetSetting(gid, quotedargs[0]).split('/')
@@ -258,15 +258,15 @@ class Teleport:
             if nombre == nombreMax:
                 p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
                 return
-            if delais > time:
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
+            if delay > time:
+                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_tp").replace("[[delay]]", iniConfig.GetSetting("config", "delay")))
                 return
             if DataStore.ContainsKey("TeleportPVP", str(player.GameID)):
                 pvpDelay = DataStore.ContainsKey("TeleportPVP", str(player.GameID))
                 pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-                delais = int(pvpDelay) + int(pvpTime)
-                if delais > time:
-                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                delay = int(pvpDelay) + int(pvpTime)
+                if delay > time:
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
                     return
                 else:
                     DataStore.Remove("TeleportPVP", str(player.GameID))
@@ -290,22 +290,22 @@ class Teleport:
             gid = str(player.GameID)
             time = Plugin.GetTimestamp()
             nombreMax = iniConfig.GetSetting("config", "nb")
-            delaisMax = float(iniConfig.GetSetting("config", "delais")) * 1000
-            delais = int(delaisTeleport(gid)) + int(delaisMax)
+            delayMax = float(iniConfig.GetSetting("config", "delay")) * 1000
+            delay = int(delayTeleport(gid)) + int(delayMax)
             nombre = nbTeleport(gid)
             if nombre == nombreMax:
                 player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
                 return
-            if delais > time:
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
+            if delay > time:
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_tp").replace("[[delay]]", iniConfig.GetSetting("config", "delay")))
                 return
             if DataStore.ContainsKey("TeleportPVP", str(gid)):
                 pvpDelay = DataStore.ContainsKey("TeleportPVP", str(gid))
                 pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-                delais = int(pvpDelay) + int(pvpTime)
-                if delais > time:
-                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                delay = int(pvpDelay) + int(pvpTime)
+                if delay > time:
+                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
                     return
                 else:
                     DataStore.Remove("TeleportPVP", str(gid))
@@ -313,10 +313,10 @@ class Teleport:
             if DataStore.ContainsKey("TeleportPVP", str(p.GameID)):
                 pvpDelay = DataStore.ContainsKey("TeleportPVP", str(p.GameID))
                 pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-                delais = int(pvpDelay) + int(pvpTime)
-                if delais > time:
-                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                delay = int(pvpDelay) + int(pvpTime)
+                if delay > time:
+                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
                     return
                 else:
                     DataStore.Remove("TeleportPVP", str(p.GameID))
@@ -354,7 +354,7 @@ class Teleport:
             gid = str(player.GameID)
             time = Plugin.GetTimestamp()
             nombreMax = iniConfig.GetSetting("config", "nb")
-            delaisMax = float(iniConfig.GetSetting("config", "delais")) * 1000
+            delayMax = float(iniConfig.GetSetting("config", "delay")) * 1000
             p = self.CheckV(Player, args)
             if p is not None:
                 if str(p.GameID) == None:
@@ -368,23 +368,23 @@ class Teleport:
                 else:
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_request_found"))
                     return
-                delais = int(delaisTeleport(str(p.GameID))) + int(delaisMax)
+                delay = int(delayTeleport(str(p.GameID))) + int(delayMax)
                 nombre = nbTeleport(str(p.GameID))
                 if nombre == nombreMax:
                     p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
                     del teleportRequest[str(p.GameID)]
                     return
-                if delais > time:
-                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
+                if delay > time:
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_tp").replace("[[delay]]", iniConfig.GetSetting("config", "delay")))
                     del teleportRequest[str(p.GameID)]
                     return
                 if DataStore.ContainsKey("TeleportPVP", gid):
                     pvpDelay = DataStore.ContainsKey("TeleportPVP", gid)
                     pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-                    delais = int(pvpDelay) + int(pvpTime)
-                    if delais > time:
-                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                    delay = int(pvpDelay) + int(pvpTime)
+                    if delay > time:
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
+                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
                         del teleportRequest[str(p.GameID)]
                         return
                     else:
@@ -392,10 +392,10 @@ class Teleport:
                 if DataStore.ContainsKey("TeleportPVP", str(p.GameID)):
                     pvpDelay = DataStore.ContainsKey("TeleportPVP", str(p.GameID))
                     pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-                    delais = int(pvpDelay) + int(pvpTime)
-                    if delais > time:
-                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                    delay = int(pvpDelay) + int(pvpTime)
+                    if delay > time:
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
+                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delay_pvp").replace("[[delay]]", iniConfig.GetSettin("config","pvpTime")))
                         del teleportRequest[str(p.GameID)]
                         return
                     else:
@@ -466,14 +466,14 @@ class Teleport:
         p = self.CheckV(Player, args)
         if p is not None:
             player.GroundTeleport(p.X, p.Y, p.Z)
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_").replace("[[user]]", quotedargs[0]))
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to").replace("[[user]]", quotedargs[0]))
             p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "admin_teleport").replace("[[user]]", player.Name))
             return
         p = self.CheckVSleeping(Player, args)
         if p is not None:
             if(p.Name.lower() == cmd.quotedArgs[0].lower()):
                 player.GroundTeleport(p.X, p.Y, p.Z)
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_").replace("[[user]]", quotedargs[0]))
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to").replace("[[user]]", quotedargs[0]))
                 return
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
 
