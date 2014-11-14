@@ -190,189 +190,126 @@ class Teleport:
             player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "config_not_found"))
 
     def cmdListHome(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_list"))
-        enum = iniHome.EnumSection(gid)
-        n = 0
-        for key in enum:
-            player.Message(n + ". " + key)
-            n += 1
+        if iniConfig.GetSetting("config", "home") == str(1):
+            quotedargs = Util.GetQuotedArgs(args)
+            gid = str(player.GameID)
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_list"))
+            enum = iniHome.EnumSection(gid)
+            n = 0
+            for key in enum:
+                player.Message(n + ". " + key)
+                n += 1
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_activate"))
 
     def cmdAddHome(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        loc = str(player.X) + "/" + str(player.Y) + "/" + str(player.Z)
-        if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_exists").replace("[[name]]", quotedargs[0]))
-            return
+        if iniConfig.GetSetting("config", "home") == str(1):
+            quotedargs = Util.GetQuotedArgs(args)
+            gid = str(player.GameID)
+            loc = str(player.X) + "/" + str(player.Y) + "/" + str(player.Z)
+            if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_exists").replace("[[name]]", quotedargs[0]))
+                return
+            else:
+                if removePlugin is not None:
+                    loc = {}
+                    loc[0] = player.X
+                    loc[1] = player.Y
+                    loc[2] = player.Z
+                    r = remove.Invoke("searchBuilding", loc, gid, iniConfig.GetSetting("config", "rad"))
+                    if r is not None and r == False:
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_home_raid"))
+                        return
+                iniHome.AddSetting(gid, quotedargs[0], loc)
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_create").replace("[[name]]", quotedargs[0]))
+                return
         else:
-            if removePlugin is not None:
-                loc = {}
-                loc[0] = player.X
-                loc[1] = player.Y
-                loc[2] = player.Z
-                r = remove.Invoke("searchBuilding", loc, gid, iniConfig.GetSetting("config", "rad"))
-                if r is not None and r == False:
-                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_home_raid"))
-                    return
-            iniHome.AddSetting(gid, quotedargs[0], loc)
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_create").replace("[[name]]", quotedargs[0]))
-            return
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_activate"))
 
     def cmdDelHome(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        loc = str(player.X) + "/" + str(player.Y) + "/" + str(player.Z)
-        if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, quotedargs[0]) is not None:
-            iniHome.DelSetting(gid, quotedargs[0])
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_delete").replace("[[name]]", quotedargs[0]))
-            return
+        if iniConfig.GetSetting("config", "home") == str(1):
+            quotedargs = Util.GetQuotedArgs(args)
+            gid = str(player.GameID)
+            loc = str(player.X) + "/" + str(player.Y) + "/" + str(player.Z)
+            if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, quotedargs[0]) is not None:
+                iniHome.DelSetting(gid, quotedargs[0])
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_delete").replace("[[name]]", quotedargs[0]))
+                return
+            else:
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
+                return
         else:
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
-            return
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_activate"))
 
     def cmdTpHome(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        time = Plugin.GetTimestamp()
-        nombreMax = iniConfig.GetSetting("config", "nb")
-        delaisMax = int(iniConfig.GetSetting("config", "delais")) * 1000
-        delais = int(delaisTeleport(gid)) + int(delaisMax)
-        nombre = nbTeleport(gid)
-        if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
-            loc = iniHome.GetSetting(gid, quotedargs[0]).split('/')
-        else:
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
-            return
-        if nombre == nombreMax:
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
-            return
-        if delais > time:
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
-            return
-        if DataStore.ContainsKey("TeleportPVP", str(player.GameID)):
-            pvpDelay = DataStore.ContainsKey("TeleportPVP", str(player.GameID))
-            pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-            delais = int(pvpDelay) + int(pvpTime)
-            if delais > time:
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                return
+        if iniConfig.GetSetting("config", "home") == str(1):
+            quotedargs = Util.GetQuotedArgs(args)
+            gid = str(player.GameID)
+            time = Plugin.GetTimestamp()
+            nombreMax = iniConfig.GetSetting("config", "nb")
+            delaisMax = int(iniConfig.GetSetting("config", "delais")) * 1000
+            delais = int(delaisTeleport(gid)) + int(delaisMax)
+            nombre = nbTeleport(gid)
+            if iniHome.GetSetting(gid, quotedargs[0]) != "" and iniHome.GetSetting(gid, args[0]) is not None:
+                loc = iniHome.GetSetting(gid, quotedargs[0]).split('/')
             else:
-                DataStore.Remove("TeleportPVP", str(player.GameID))
-        if iniConfig.GetSetting("config","delayBefore") != str(0):
-            ConnectionData = Plugin.CreateDict()
-            ConnectionData["Player"] = playerFrom
-            ConnectionData["X"] = loc[0]
-            ConnectionData["Y"] = loc[1]
-            ConnectionData["Z"] = loc[2]
-            ConnectionData["Message"] = playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_home_delay").replace("[[home]]", quotedargs[0]).replace("[[delay]]", iniConfig.GetSetting("config","delayBefore")))
-            Plugin.CreateParallelTimer("Teleport", iniConfig.GetSetting("config","delayBefore")*1000, ConnectionData).Start()
-        else:
-            playerFrom.GroundTeleport(float(loc[0]), float(loc[1]), float(loc[2]))
-            playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_home").replace("[[home]]", quotedargs[0]))
-
-    def cmdTp(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        time = Plugin.GetTimestamp()
-        nombreMax = iniConfig.GetSetting("config", "nb")
-        delaisMax = float(iniConfig.GetSetting("config", "delais")) * 1000
-        delais = int(delaisTeleport(gid)) + int(delaisMax)
-        nombre = nbTeleport(gid)
-        if nombre == nombreMax:
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
-            return
-        if delais > time:
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
-            return
-        if DataStore.ContainsKey("TeleportPVP", str(gid)):
-            pvpDelay = DataStore.ContainsKey("TeleportPVP", str(gid))
-            pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-            delais = int(pvpDelay) + int(pvpTime)
-            if delais > time:
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_found").replace("[[name]]", quotedargs[0]))
                 return
-            else:
-                DataStore.Remove("TeleportPVP", str(gid))
-        p = self.CheckV(Player, args)
-        if DataStore.ContainsKey("TeleportPVP", str(p.GameID)):
-            pvpDelay = DataStore.ContainsKey("TeleportPVP", str(p.GameID))
-            pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
-            delais = int(pvpDelay) + int(pvpTime)
-            if delais > time:
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                return
-            else:
-                DataStore.Remove("TeleportPVP", str(p.GameID))
-        if removePlugin is not None:
-            loc = {}
-            loc[0] = p.X
-            loc[1] = p.Y
-            loc[2] = p.Z
-            r = remove.Invoke("searchBuilding", loc, str(p.GameID), iniConfig.GetSetting("config", "rad"))
-            if r is not None and r == False:
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
-        if str(p.GameID) == str(player.GameID):
-            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_yourself"))
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
-            return
-        if p is not None:
-            if teleportRequest.has_key(str(player.GameID)):
-                teleportRequest[str(player.GameID)][str(p.GameID)] = 1
-            else:
-                teleportRequest[str(player.GameID)] = {}
-                teleportRequest[str(player.GameID)][str(p.GameID)] = 1
-            p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "tp_requete").replace("[[name]]", player.Name))
-            if iniConfig.GetSetting("config","tpRequestDelay") != str(0):
-                ConnectionData = Plugin.CreateDict()
-                ConnectionData["PlayerA"] = str(player.GameID)
-                ConnectionData["PlayerB"] = str(p.GameID)
-                Plugin.CreateParallelTimer("TeleportRequest", iniConfig.GetSetting("config","tpRequestDelay")*1000, ConnectionData).Start()
-
-    def cmdTpAccept(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        time = Plugin.GetTimestamp()
-        nombreMax = iniConfig.GetSetting("config", "nb")
-        delaisMax = float(iniConfig.GetSetting("config", "delais")) * 1000
-        p = self.CheckV(Player, args)
-        if p is not None:
-            if str(p.GameID) == None:
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
-                return
-            if teleportRequest.has_key(str(p.GameID)):
-                t = teleportRequest[str(p.GameID)]
-                if t.has_key(str(gid)) == False:
-                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_request_found"))
-                    return
-            else:
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_request_found"))
-                return
-            delais = int(delaisTeleport(str(p.GameID))) + int(delaisMax)
-            nombre = nbTeleport(str(p.GameID))
             if nombre == nombreMax:
                 p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
-                del teleportRequest[str(p.GameID)]
                 return
             if delais > time:
                 p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
-                del teleportRequest[str(p.GameID)]
                 return
-            if DataStore.ContainsKey("TeleportPVP", gid):
-                pvpDelay = DataStore.ContainsKey("TeleportPVP", gid)
+            if DataStore.ContainsKey("TeleportPVP", str(player.GameID)):
+                pvpDelay = DataStore.ContainsKey("TeleportPVP", str(player.GameID))
+                pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
+                delais = int(pvpDelay) + int(pvpTime)
+                if delais > time:
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                    return
+                else:
+                    DataStore.Remove("TeleportPVP", str(player.GameID))
+            if iniConfig.GetSetting("config","delayBefore") != str(0):
+                ConnectionData = Plugin.CreateDict()
+                ConnectionData["Player"] = playerFrom
+                ConnectionData["X"] = loc[0]
+                ConnectionData["Y"] = loc[1]
+                ConnectionData["Z"] = loc[2]
+                ConnectionData["Message"] = playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_home_delay").replace("[[home]]", quotedargs[0]).replace("[[delay]]", iniConfig.GetSetting("config","delayBefore")))
+                Plugin.CreateParallelTimer("Teleport", iniConfig.GetSetting("config","delayBefore")*1000, ConnectionData).Start()
+            else:
+                playerFrom.GroundTeleport(float(loc[0]), float(loc[1]), float(loc[2]))
+                playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_home").replace("[[home]]", quotedargs[0]))
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "home_not_activate"))
+
+    def cmdTp(self, args, player):
+        if iniConfig.GetSetting("config", "tp") == str(1):
+            quotedargs = Util.GetQuotedArgs(args)
+            gid = str(player.GameID)
+            time = Plugin.GetTimestamp()
+            nombreMax = iniConfig.GetSetting("config", "nb")
+            delaisMax = float(iniConfig.GetSetting("config", "delais")) * 1000
+            delais = int(delaisTeleport(gid)) + int(delaisMax)
+            nombre = nbTeleport(gid)
+            if nombre == nombreMax:
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
+                return
+            if delais > time:
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
+                return
+            if DataStore.ContainsKey("TeleportPVP", str(gid)):
+                pvpDelay = DataStore.ContainsKey("TeleportPVP", str(gid))
                 pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
                 delais = int(pvpDelay) + int(pvpTime)
                 if delais > time:
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
                     p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                    del teleportRequest[str(p.GameID)]
                     return
                 else:
                     DataStore.Remove("TeleportPVP", str(gid))
+            p = self.CheckV(Player, args)
             if DataStore.ContainsKey("TeleportPVP", str(p.GameID)):
                 pvpDelay = DataStore.ContainsKey("TeleportPVP", str(p.GameID))
                 pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
@@ -380,64 +317,149 @@ class Teleport:
                 if delais > time:
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
                     p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
-                    del teleportRequest[str(p.GameID)]
                     return
                 else:
                     DataStore.Remove("TeleportPVP", str(p.GameID))
             if removePlugin is not None:
                 loc = {}
-                loc[0] = player.X
-                loc[1] = player.Y
-                loc[2] = player.Z
-                r = remove.Invoke("searchBuilding", loc, gid, iniConfig.GetSetting("config", "rad"))
+                loc[0] = p.X
+                loc[1] = p.Y
+                loc[2] = p.Z
+                r = remove.Invoke("searchBuilding", loc, str(p.GameID), iniConfig.GetSetting("config", "rad"))
                 if r is not None and r == False:
                     p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
-            if iniConfig.GetSetting("config","delayBefore") != str(0):
-                ConnectionData = Plugin.CreateDict()
-                ConnectionData["Player"] = p
-                ConnectionData["X"] = player.X
-                ConnectionData["Y"] = player.Y
-                ConnectionData["Z"] = player.Z
-                ConnectionData["Message"] = p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_delay").replace("[[user]]", player.Name).replace("[[delay]]", iniConfig.GetSetting("config","delayBefore")))
-                Plugin.CreateParallelTimer("Teleport", iniConfig.GetSetting("config","delayBefore")*1000, ConnectionData).Start()
-            else:
-                p.GroundTeleport(float(player.X), float(player.y), float(player.z))
-                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to").replace("[[user]]", player.Name))
+            if str(p.GameID) == str(player.GameID):
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_yourself"))
+                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
+                return
+            if p is not None:
+                if teleportRequest.has_key(str(player.GameID)):
+                    teleportRequest[str(player.GameID)][str(p.GameID)] = 1
+                else:
+                    teleportRequest[str(player.GameID)] = {}
+                    teleportRequest[str(player.GameID)][str(p.GameID)] = 1
+                p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "tp_requete").replace("[[name]]", player.Name))
+                if iniConfig.GetSetting("config","tpRequestDelay") != str(0):
+                    ConnectionData = Plugin.CreateDict()
+                    ConnectionData["PlayerA"] = str(player.GameID)
+                    ConnectionData["PlayerB"] = str(p.GameID)
+                    Plugin.CreateParallelTimer("TeleportRequest", iniConfig.GetSetting("config","tpRequestDelay")*1000, ConnectionData).Start()
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "tp_not_activate"))
+
+    def cmdTpAccept(self, args, player):
+        if iniConfig.GetSetting("config", "tp") == str(1):
+            quotedargs = Util.GetQuotedArgs(args)
+            gid = str(player.GameID)
+            time = Plugin.GetTimestamp()
+            nombreMax = iniConfig.GetSetting("config", "nb")
+            delaisMax = float(iniConfig.GetSetting("config", "delais")) * 1000
+            p = self.CheckV(Player, args)
+            if p is not None:
+                if str(p.GameID) == None:
+                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
+                    return
+                if teleportRequest.has_key(str(p.GameID)):
+                    t = teleportRequest[str(p.GameID)]
+                    if t.has_key(str(gid)) == False:
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_request_found"))
+                        return
+                else:
+                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "no_tp_request_found"))
+                    return
+                delais = int(delaisTeleport(str(p.GameID))) + int(delaisMax)
+                nombre = nbTeleport(str(p.GameID))
+                if nombre == nombreMax:
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "max_tp").replace("[[nb]]", nombreMax))
+                    del teleportRequest[str(p.GameID)]
+                    return
+                if delais > time:
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_tp").replace("[[delais]]", iniConfig.GetSetting("config", "delais")))
+                    del teleportRequest[str(p.GameID)]
+                    return
+                if DataStore.ContainsKey("TeleportPVP", gid):
+                    pvpDelay = DataStore.ContainsKey("TeleportPVP", gid)
+                    pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
+                    delais = int(pvpDelay) + int(pvpTime)
+                    if delais > time:
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                        del teleportRequest[str(p.GameID)]
+                        return
+                    else:
+                        DataStore.Remove("TeleportPVP", str(gid))
+                if DataStore.ContainsKey("TeleportPVP", str(p.GameID)):
+                    pvpDelay = DataStore.ContainsKey("TeleportPVP", str(p.GameID))
+                    pvpTime = int(iniConfig.GetSettin("config","pvpTime")) * 1000
+                    delais = int(pvpDelay) + int(pvpTime)
+                    if delais > time:
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "delais_pvp").replace("[[delais]]", iniConfig.GetSettin("config","pvpTime")))
+                        del teleportRequest[str(p.GameID)]
+                        return
+                    else:
+                        DataStore.Remove("TeleportPVP", str(p.GameID))
+                if removePlugin is not None:
+                    loc = {}
+                    loc[0] = player.X
+                    loc[1] = player.Y
+                    loc[2] = player.Z
+                    r = remove.Invoke("searchBuilding", loc, gid, iniConfig.GetSetting("config", "rad"))
+                    if r is not None and r == False:
+                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
+                        player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "anti_tp_raid"))
+                if iniConfig.GetSetting("config","delayBefore") != str(0):
+                    ConnectionData = Plugin.CreateDict()
+                    ConnectionData["Player"] = p
+                    ConnectionData["X"] = player.X
+                    ConnectionData["Y"] = player.Y
+                    ConnectionData["Z"] = player.Z
+                    ConnectionData["Message"] = p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_delay").replace("[[user]]", player.Name).replace("[[delay]]", iniConfig.GetSetting("config","delayBefore")))
+                    Plugin.CreateParallelTimer("Teleport", iniConfig.GetSetting("config","delayBefore")*1000, ConnectionData).Start()
+                else:
+                    p.GroundTeleport(float(player.X), float(player.y), float(player.z))
+                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to").replace("[[user]]", player.Name))
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "tp_not_activate"))
 
     def cmdTpRefuse(self, args, player):
-        gid = str(player.GameID)
-        p = self.CheckV(Player, args)
-        if p is not None:
-            if str(p.GameID) == None:
-                player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
-                return
-            if teleportRequest.has_key(str(p.GameID)):
-                t = teleportRequest[str(p.GameID)]
-                if t.has_key(str(gid)):
-                    p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_no_accept").replace("[[user]]", player.Name))
-                    del teleportRequest[str(p.GameID)][str(gid)]
+        if iniConfig.GetSetting("config", "tp") == str(1):
+            gid = str(player.GameID)
+            p = self.CheckV(Player, args)
+            if p is not None:
+                if str(p.GameID) == None:
+                    player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
                     return
+                if teleportRequest.has_key(str(p.GameID)):
+                    t = teleportRequest[str(p.GameID)]
+                    if t.has_key(str(gid)):
+                        p.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_no_accept").replace("[[user]]", player.Name))
+                        del teleportRequest[str(p.GameID)][str(gid)]
+                        return
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "tp_not_activate"))
 
     def cmdTpList(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
-        gid = str(player.GameID)
-        playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_list_request"))
-        if teleportRequest.has_key(str(gid)):
-            enum = teleportRequest.EnumSection(gid)
-            n = 0
-            for key in enum:
-                for p in Server.ActivePlayers:
-                    if(str(p.GameID) == key):
-                        playerFrom.Message(n + ". " + p.Name)
-                        n = n + 1
-                for p in Server.SleepingPlayers:
-                    if(str(p.GameID) == key):
-                        playerFrom.Message(n + ". " + p.Name)
-                        n = n + 1
+        if iniConfig.GetSetting("config", "tp") == str(1):
+            gid = str(player.GameID)
+            playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_list_request"))
+            if teleportRequest.has_key(str(gid)):
+                enum = teleportRequest.EnumSection(gid)
+                n = 0
+                for key in enum:
+                    for p in Server.ActivePlayers:
+                        if(str(p.GameID) == key):
+                            playerFrom.Message(n + ". " + p.Name)
+                            n = n + 1
+                    for p in Server.SleepingPlayers:
+                        if(str(p.GameID) == key):
+                            playerFrom.Message(n + ". " + p.Name)
+                            n = n + 1
+        else:
+            player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "tp_not_activate"))
 
     def cmdAdminTp(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
         gid = str(player.GameID)
         if not player.Admin:
             return
@@ -456,7 +478,6 @@ class Teleport:
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "player_not_found").replace('[[user]]', quotedargs[0]))
 
     def cmdAdminTpLoc(self, args, player):
-        quotedargs = Util.GetQuotedArgs(args)
         player.GroundTeleport(float(quotedargs[0]), float(quotedargs[1]), float(quotedargs[2]))
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("config", "language"), "teleport_to_pos").replace("[[loc]]", "X=" + str(quotedargs[0]) + " Y=" + str(quotedargs[1]) + " Z=" + str(quotedargs[2])))
 
@@ -468,7 +489,6 @@ class Teleport:
     """
     def CheckV(self, Player, args):
         ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Settings", "sysname")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(String.Join(" ", args))
@@ -506,7 +526,6 @@ class Teleport:
     """
     def CheckVSleeping(self, Player, args):
         ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Settings", "sysname")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(String.Join(" ", args))
