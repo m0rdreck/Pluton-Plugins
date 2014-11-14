@@ -1,5 +1,5 @@
 __author__ = 'M0rdreck'
-__version__ = '1.9.3'
+__version__ = '1.9.4'
 
 import clr
 import sys
@@ -56,6 +56,25 @@ class Remove:
             return g[key]
         else:
             return None
+
+    def searchOwner(self, loc):
+        for p in Server.ActivePlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            ownerGID = i.GetSetting("object", loc)
+            if str(p.GameID) == str(ownerGID):
+                return P
+        for p in Server.SleepingPlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            ownerGID = i.GetSetting("object", loc)
+            if str(p.GameID) == str(ownerGID):
+                return P
+        return None
 
     def On_PlayerConnected(self, player):
         u = self.user(str(player.GameID))
@@ -194,16 +213,12 @@ class Remove:
             player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
             return
         for p in Server.ActivePlayers:
-            if(p.Name.lower() == quotedArgs[0].lower()):
-                if iniShare.GetSetting(str(player.GameID), str(p.GameID)) != "" and iniShare.GetSetting(str(player.GameID), str(p.GameID)) == str(1):
+            if p.Name.lower() == quotedArgs[0].lower():
+                if iniShare.GetSetting(str(p.GameID), str(player.GameID)) != "" and iniShare.GetSetting(str(player.GameID), str(p.GameID)) == str(1):
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "share_found") + " " + p.Name)
-                    if iniShare.GetSetting(str(p.GameID), str(player.GameID)) != "" and iniShare.GetSetting(str(p.GameID), str(player.GameID)) == str(2):
-                        iniShare.SetSetting(str(p.GameID), str(player.GameID), str(2))
-                        iniShare.Save()
                     return
                 else:
-                    iniShare.SetSetting(str(p.GameID), str(player.GameID), str(2))
-                    iniShare.SetSetting(str(player.GameID), str(p.GameID), str(1))
+                    iniShare.SetSetting(str(p.GameID), str(player.GameID), str(1))
                     iniShare.Save()
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "share_activate") + " " + p.Name)
                     p.Message(player.Name + " " + iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "share_with_activate"))
@@ -216,31 +231,26 @@ class Remove:
             player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
             return
         for p in Server.ActivePlayers:
-            if(p.Name.lower() == quotedArgs[0].lower()):
-                if iniShare.GetSetting(str(player.GameID), str(p.GameID)) == "" or iniShare.GetSetting(str(player.GameID), str(p.GameID)) == str(0):
-                    if iniShare.GetSetting(str(p.GameID), str(player.GameID)) == "" or iniShare.GetSetting(str(p.GameID), str(player.GameID)) != str(0):
-                        iniShare.SetSetting(str(p.GameID), str(player.GameID), str(0))
-                        iniShare.Save()
+            if p.Name.lower() == quotedArgs[0].lower():
+                if iniShare.GetSetting(str(p.GameID), str(player.GameID)) == "" or iniShare.GetSetting(str(p.GameID), str(player.GameID)) == str(0):
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "share_already_desactivate") + " " + p.Name)
-                    return
                 else:
                     iniShare.SetSetting(str(p.GameID), str(player.GameID), str(0))
-                    iniShare.SetSetting(str(player.GameID), str(p.GameID), str(0))
                     iniShare.Save()
                     player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "share_deactivate") + " " + p.Name)
                     p.Message(player.Name + " " + iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "share_with_deactivate"))
                     return
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
 
-    def shareControl(self, gid, loc, locP, bb):
+    def shareControl(self, gid, loc, bb):
         enum = iniShare.EnumSection(str(gid))
         for key in enum:
-            if iniShare.GetSetting(str(gid), str(key)) == str(2):
+            if iniShare.GetSetting(str(gid), str(key)) == str(1):
                 iniu = self.getGlobal("owner_" + str(key))
                 if iniu == "" or iniu is None:
                     iniu = self.user(str(gid))
                     self.setGlobal("owner_" + str(gid), iniu)
-                if(iniu.GetSetting("object", loc) != "" and iniu.GetSetting("object", loc) == str(key) or iniu.GetSetting("object", locP) == str(key)):
+                if iniu.GetSetting("object", loc) != "" and iniu.GetSetting("object", loc) == str(key):
                     Util.DestroyEntity(bb)
                     iniu.DeleteSetting("object", loc)
                     iniu.Save()
@@ -255,69 +265,36 @@ class Remove:
             ini = self.user(str(gid))
             self.setGlobal("owner_" + str(gid), ini)
         if player is not None:
-            loc = str(bhe.X) + str(bhe.Y) + str(bhe.Z) + attacked.Victim.buildingBlock.blockDefinition.name
-            locP = str(bhe.X) + str(bhe.Y) + str(bhe.Z) + attacked.Victim.Prefab
+            loc = str(bhe.X) + "/" + str(bhe.Y) + "/" + str(bhe.Z) + " " + attacked.Victim.Prefab
             if Server.Players[player.userID].Admin:
                 if DataStore.Get("remove", gid) is not None:
                     Util.DestroyEntity(attacked.Victim.buildingBlock)
-                    for p in Server.ActivePlayers:
+                    owner = searchOwner(loc)
+                    if owner is not None :
                         i = self.getGlobal("owner_" + str(p.GameID))
                         if i == "" or i is None:
                             i = self.user(str(p.GameID))
                             self.setGlobal("owner_" + str(p.GameID), i)
                         ownerGID = i.GetSetting("object", loc)
-                        ownerGIDP = i.GetSetting("object", locP)
-                        if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
+                        if str(p.GameID) == str(ownerGID):
                             ini.DeleteSetting("object", loc)
-                            ini.DeleteSetting("object", locP)
                             ini.Save()
-                    for p in Server.SleepingPlayers:
-                        i = self.getGlobal("owner_" + str(p.GameID))
-                        if i == "" or i is None:
-                            i = self.user(str(player.GameID))
-                            self.setGlobal("owner_" + str(player.GameID), i)
-                        ownerGID = i.GetSetting("object", loc)
-                        ownerGIDP = i.GetSetting("object", locP)
-                        if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
-                            ini.DeleteSetting("object", loc)
-                            ini.DeleteSetting("object", locP)
-                            ini.Save()
-            if DataStore.Get("owner", str(gid)) is not None:
-                if not Server.Players[player.userID].Admin:
-                    Server.Players[player.userID].Message("not admin")
-                    return
-                for p in Server.ActivePlayers:
-                    i = self.getGlobal("owner_" + str(p.GameID))
-                    if i == "" or i is None:
-                        i = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), i)
-                    ownerGID = i.GetSetting("object", loc)
-                    ownerGIDP = i.GetSetting("object", locP)
-                    if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
-                        Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_is") +" "+ p.Name)
-                        return
-                for p in Server.SleepingPlayers:
-                    i = self.getGlobal("owner_" + str(p.GameID))
-                    if i == "" or i is None:
-                        i = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), i)
-                    ownerGID = i.GetSetting("object", loc)
-                    ownerGIDP = i.GetSetting("object", locP)
-                    if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
-                        Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_is") +" "+ p.Name)
-                        return
-                Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
+                if DataStore.Get("owner", str(gid)) is not None:
+                    owner = searchOwner(loc)
+                    if owner is None :
+                         Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
+                    else:
+                        Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_is") +" "+ owner.Name)
             elif DataStore.Get("destroy", str(gid)) is not None:
-                if ini is not None and ini.GetSetting("object", loc) != "" or ini is not None and ini.GetSetting("object", locP) != "":
-                    if ini.GetSetting("object", loc) == str(gid) or ini.GetSetting("object", locP) == str(gid):
+                if ini is not None and ini.GetSetting("object", loc) != "":
+                    if ini.GetSetting("object", loc) == str(gid):
                         Util.DestroyEntity(attacked.Victim.buildingBlock)
                         ini.DeleteSetting("object", loc)
-                        ini.DeleteSetting("object", locP)
                         ini.Save()
                     else:
-                        self.shareControl(gid, loc, locP, attacked.Victim.buildingBlock)
+                        self.shareControl(gid, loc, attacked.Victim.buildingBlock)
                 else:
-                    self.shareControl(gid, loc, locP, attacked.Victim.buildingBlock)
+                    self.shareControl(gid, loc, attacked.Victim.buildingBlock)
 
     def On_FrameDeployed(self, fde):
         builder = fde.Deployer
@@ -328,7 +305,7 @@ class Remove:
             ini = self.user(str(gid))
             self.setGlobal("owner_" + str(gid), ini)
         if builder is not None:
-            loc = str(bp.X) + str(bp.Y) + str(bp.Z) + str(fde.BuildingPart.Prefab)
+            loc = str(bhe.X) + "/" + str(bhe.Y) + "/" + str(bhe.Z) + " " + str(fde.BuildingPart.Prefab)
             if ini.GetSetting("object", loc) == "" or ini.GetSetting("object", loc) is None:
                 ini.SetSetting("object", loc, str(gid))
                 ini.Save()
@@ -343,50 +320,32 @@ class Remove:
             ini = self.user(str(gid))
             self.setGlobal("owner_" + str(gid), ini)
         if builder is not None:
-            loc = str(be.BuildingPart.X) + str(be.BuildingPart.Y) + str(be.BuildingPart.Z) + be.BlockName
-            locP = str(be.BuildingPart.X) + str(be.BuildingPart.Y) + str(be.BuildingPart.Z) + bp.Prefab
-            if ini.GetSetting("object", locP) == "" and ini.GetSetting("object", loc) == "" and be.BuildingPart.Health <= 0.5 or ini.GetSetting("object", locP) is None and ini.GetSetting("object", loc) is None and be.BuildingPart.Health <= 0.5 :
-                ini.SetSetting("object", locP, str(gid))
-                ini.Save()
-                builder.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "building_save"))
+            loc = str(bhe.X) + "/" + str(bhe.Y) + "/" + str(bhe.Z) + " " + str(bp.Prefab)
             if DataStore.Get("owner", str(gid)) is not None:
                 if not Server.Players[gid].Admin:
                     Server.Players[gid].Message("not admin")
                     return
-                for p in Server.ActivePlayers:
-                    i = self.getGlobal("owner_" + str(p.GameID))
-                    if i == "" or i is None:
-                        i = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), i)
-                    ownerGID = i.GetSetting("object", loc)
-                    ownerGIDP = i.GetSetting("object", locP)
-                    if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
-                        Server.Players[gid].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_is") +" "+ p.Name)
-                        return
-                for p in Server.SleepingPlayers:
-                    i = self.getGlobal("owner_" + str(p.GameID))
-                    if i == "" or i is None:
-                        i = self.user(str(p.GameID))
-                        self.setGlobal("owner_" + str(p.GameID), i)
-                    ownerGID = i.GetSetting("object", loc)
-                    ownerGIDP = i.GetSetting("object", locP)
-                    if(str(p.GameID) == str(ownerGID) or str(p.GameID) == str(ownerGIDP)):
-                        Server.Players[gid].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_is") +" "+ p.Name)
-                        return
-                Server.Players[builder.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
-	# xCorrosionx function
+                owner = searchOwner(loc)
+                if owner is None :
+                     Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_not_found"))
+                else:
+                    Server.Players[player.userID].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_is") +" "+ owner.Name)
+
+    # xCorrosionx function
     def destroyDeactivatorCallback(self, timer):
         mydict = timer.Args
         gid = mydict["gid"]
         Server.Players[gid].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "destroy_desactivate"))
         DataStore.Remove("destroy", str(gid))
         timer.Kill()
+
     def ownerDeactivatorCallback(self, timer):
         mydict = timer.Args
         gid = mydict["gid"]
         Server.Players[gid].Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "owner_desactivate"))
         DataStore.Remove("owner", str(gid))
         timer.Kill()
+
     def removerDeactivatorCallback(self, timer):
         mydict = timer.Args
         gid = mydict["gid"]
