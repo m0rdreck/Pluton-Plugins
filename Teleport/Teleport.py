@@ -170,7 +170,7 @@ class Teleport:
         enum = iniConfig.EnumSection("Config")
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "config_titre_liste"))
         for key in enum:
-            player.Message(str(key) + " = " + iniConfig.GetSetting("Config", key))
+            player.Message(str(key) + " = " + iniConfig.GetSetting("Config", key) + "(" + iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "config_description_"+key) + ")")
         player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "config_how_to"))
 
     def cmdConfigUpdate(self, args, player):
@@ -257,7 +257,6 @@ class Teleport:
         else:
             playerFrom.GroundTeleport(float(loc[0]), float(loc[1]), float(loc[2]))
             playerFrom.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "teleport_to_home").replace("[[home]]", quotedargs[0]))
-
 
     def cmdTp(self, args, player):
         quotedargs = Util.GetQuotedArgs(args)
@@ -465,7 +464,6 @@ class Teleport:
         else:
             player.Message(iniLang.GetSetting(iniConfig.GetSetting("Config", "language"), "player_similar").replace('[[nb]]', str(count)))
             return None
-
 
     """
         CheckV method based on Spock's method.
