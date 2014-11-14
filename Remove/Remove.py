@@ -24,6 +24,7 @@ class Remove:
             ini.AddSetting("Config", "remove_delay", "15000")
             ini.AddSetting("Config", "owner_delay", "15000")
             ini.AddSetting("Config", "destroy_delay", "15000")
+            ini.AddSetting("Config", "rad", "2")
             ini.Save()
             return ini
 
@@ -95,6 +96,43 @@ class Remove:
             if str(key) == str(gid2):
                 return True
         return False
+
+    def ownerBuilding(self, loc, gid, rad):
+        owner = gid
+        for p in Server.ActivePlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            enum = i.EnumSection("object")
+            for key in enum:
+                k = key.split( )
+                locA = k[0].split("/")
+                if (locA[0] + rad) > loc[0] and (locA[0] - rad) < loc[0] and (locA[2] + rad) > loc[2] and (locA[2] - rad) < loc[2]:
+                    owner = p.GameID
+        for p in Server.SleepingPlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            enum = i.EnumSection("object")
+            for key in enum:
+                k = key.split( )
+                locA = k[0].split("/")
+                if (locA[0] + rad) > loc[0] and (locA[0] - rad) < loc[0] and (locA[2] + rad) > loc[2] and (locA[2] - rad) < loc[2]:
+                    owner = p.GameID
+        for p in Server.OfflinePlayers:
+            i = self.getGlobal("owner_" + str(p.GameID))
+            if i == "" or i is None:
+                i = self.user(str(p.GameID))
+                self.setGlobal("owner_" + str(p.GameID), i)
+            enum = i.EnumSection("object")
+            for key in enum:
+                k = key.split( )
+                locA = k[0].split("/")
+                if (locA[0] + rad) > loc[0] and (locA[0] - rad) < loc[0] and (locA[2] + rad) > loc[2] and (locA[2] - rad) < loc[2]:
+                    owner = p.GameID
+        return owner
 
     def searchBuilding(self, loc, gid, rad):
         owner = False
@@ -365,6 +403,16 @@ class Remove:
             ini = self.user(str(gid))
             self.setGlobal("owner_" + str(gid), ini)
         if builder is not None:
+            loc = {}
+            loc[0] = builder.X
+            loc[1] = builder.Y
+            loc[2] = builder.Z
+            owner = ownerBuilding(self, loc, gid, iniConfig.GetSetting("Config", "rad"))
+            if str(owner) != str(gid):
+                ini = self.getGlobal("owner_" + str(owner))
+                if ini == "" or ini is None:
+                    ini = self.user(str(owner))
+                    self.setGlobal("owner_" + str(owner), ini)
             loc = str(bhe.X) + "/" + str(bhe.Y) + "/" + str(bhe.Z) + " " + str(fde.BuildingPart.Prefab)
             if ini.GetSetting("object", loc) == "" or ini.GetSetting("object", loc) is None:
                 ini.SetSetting("object", loc, str(gid))
