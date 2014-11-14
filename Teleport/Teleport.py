@@ -473,7 +473,7 @@ class Teleport:
         Can Handle Single argument and Array args.
         V4.0
     """
-    def CheckV(self, Player, args):
+    def CheckVSleeping(self, Player, args):
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         count = 0
